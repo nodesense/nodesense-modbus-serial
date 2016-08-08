@@ -15,7 +15,7 @@ import {crc16_modbus} from "./modbus";
 //FIXME: handle usb pulled out, serial port is not available after opening
 //FIXME: Auto-reconnect options
 //FIXME: timer is poor handled, Adjust timer based on baud rate, timer interval and max time out can be configured by client side as well
-
+//FIXME: Parse the response header before responding
 
 
 export class ModbusSerialPort {
