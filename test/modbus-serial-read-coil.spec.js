@@ -20,6 +20,10 @@ describe('readCoils Test', function() {
                     
                     expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x01, 0x03, 0xaf, 0xaa, 0x0a, 0xf2, 0xc8]));
                     done();
+                }, function(err){
+                    expect(true).to.equal(false);
+                    console.log("error ", err);
+                    done();
                 })
                 
                 setTimeout(function(){
@@ -44,15 +48,19 @@ describe('readCoils Test', function() {
                 
                 modbusSerialPort.readDiscreteInputs(1, 0, 20).then(function(outputBuffer){
                     console.log("received  readDiscreteInputs in promise ", outputBuffer);
-                    
-                    expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x02, 0x03, 0xaf, 0xaa, 0x0a, 0xf2, 0xc8]));
+                     
+                    expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x02, 0x03, 0xaa, 0xaa, 0x0a, 0xa6, 0xc9]));
+                    done();
+                }, function(err){
+                    expect(true).to.equal(false);
+                    console.log("error ", err);
                     done();
                 })
                 
                 setTimeout(function(){
                     if (modbusSerialPort.serialPort != null) {
                         console.log("**Got serial port object**");
-                        modbusSerialPort.serialPort.writeToComputer(Buffer.from([0x01, 0x02, 0x03, 0xaf, 0xaa, 0x0a, 0xf2, 0xc8]));
+                        modbusSerialPort.serialPort.writeToComputer(Buffer.from([0x01, 0x02, 0x03, 0xaa, 0xaa, 0x0a, 0xa6, 0xc9]));
                   }
                 }, 1000);
                 

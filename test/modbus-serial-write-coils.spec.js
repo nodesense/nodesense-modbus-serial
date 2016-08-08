@@ -50,6 +50,10 @@ describe('Write Coil(s) Tests', function() {
                 modbusSerialPort.writeMultipleCoils(1, 0, buffer).then(function(outputBuffer){
                     expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x0f, 0x00, 0x00, 0x00, 0x04, 0x54, 0x08]));
                     done();
+                }, function(err){
+                    expect(true).to.equal(false);
+                    console.log("error ", err);
+                    done();
                 })
                 
                 setTimeout(function(){

@@ -14,14 +14,16 @@ modbusClient.connect().then(function(){
         })
     }, 5000);
    
+    */
+
    var addInterval =  setInterval(function(){
         modbusClient.readInputRegisters(1, 0, 10).then(function(data){
             console.log("received input registers in promise ", data);
         })
     }, 5000);
     
-*/
    
+    /*
 
    
      var addInterval = setInterval(function(){
@@ -31,14 +33,16 @@ modbusClient.connect().then(function(){
             console.log("Yeah, promise failed ", err);
         })
      }, 1000);
-   /*
+
 
   var addInterval = setInterval(function(){
-        modbusClient.readDiscreteInputs(1, 0, 10).then(function(data){
+        modbusClient.readDiscreteInputs(1, 0, 20).then(function(data){
             console.log("received  readDiscreateInputs in promise ", data);
         })
     }, 5000);
-  
+  */
+
+   /*
    
      var addInterval =  setInterval(function(){
         var buffer = Buffer.alloc(4, 2); 

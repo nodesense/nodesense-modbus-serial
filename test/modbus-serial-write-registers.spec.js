@@ -21,6 +21,10 @@ describe('Write Registers Test', function() {
                     console.log("received  writeSingleRegister in promise ", outputBuffer);
                     expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x06, 0x00, 0x00, 0x00, 0x03,  0xc9, 0xcb]));
                     done();
+                }, function(err){
+                    expect(true).to.equal(false);
+                    console.log("error ", err);
+                    done();
                 })
                 
                 setTimeout(function(){
@@ -47,6 +51,10 @@ describe('Write Registers Test', function() {
 
                 modbusSerialPort.writeMultipleRegisters(1, 0, buffer).then(function(outputBuffer){
                     expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x10, 0x00, 0x00, 0x00,  0x02, 0x41, 0xc8]));
+                    done();
+                }, function(err){
+                    expect(true).to.equal(false);
+                    console.log("error ", err);
                     done();
                 })
                 

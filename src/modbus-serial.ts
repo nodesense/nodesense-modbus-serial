@@ -140,21 +140,25 @@ export class ModbusSerialPort {
          console.log("***Closed***");
          this.state = State.Closed;
     }
+ 
+    
 
-    processTaskTimeout(task : Task) {
-        console.log("Task Time out ", task.id);
+    retryCurrentTask() {
+        if (this.currentTask == null)
+        return;
+
+        console.log("Task Time out ", this.currentTask.id);
 
         console.log("Queue Length ", this.requestQueue.length());
 
         console.log("Queue workersList Length ", this.requestQueue.workersList().length);
 
-
         console.log("Queue running Length ", this.requestQueue.running().length);
+        
         var callback = this.currentTask.callback;
 
-        this.currentTask.callback = null;
-
         this.currentTask.retry += 1;
+        this.currentTask.callback = null;
 
         console.log("retry for ", this.currentTask.retry);
 
@@ -189,7 +193,7 @@ export class ModbusSerialPort {
             {
                 console.log("elasped time ", now() - this.writeTime);
                 console.log("TIME OUT");
-                this.processTaskTimeout(this.currentTask);
+                this.retryCurrentTask();
             }
         }
     }
@@ -256,6 +260,18 @@ export class ModbusSerialPort {
 
         if (this.currentTask != null && (this.currentTask.expected == this.incomingLength)) {
             
+            let crc = this.incomingBuffer[this.incomingLength - 1];
+            crc = crc << 8;
+            crc |= (0xff && this.incomingBuffer[this.incomingLength - 2]);
+
+            let calculatedCRC = crc16_modbus(this.incomingBuffer, this.incomingLength - 2);
+
+            if (crc !== calculatedCRC) {
+                console.log("INCORRECT CRC*", crc.toString(16), calculatedCRC.toString(16));
+                 this.retryCurrentTask();
+                 return;
+            }
+
             if (this.currentTask.resolve) {
                 console.log("processing resolve");
 
@@ -279,7 +295,6 @@ export class ModbusSerialPort {
             console.log("current task is null");
         }
     }
-
 
     execute(task: any) {
         this.currentTask = task;
