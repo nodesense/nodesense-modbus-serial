@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "module": "commonjs",
+    "declaration": true,
+    "outDir": "dist",
+    "noImplicitAny": true
+  },
+  "filesGlob": [
+    "src/**/*.ts",
+    "src/**/*.js",
+    "scripts/**/*.ts",
+    "scripts/**/*.js",
+    "!node_modules/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "scripts",
+    "typings/main",
+    "typings/main.d.ts",
+    "dist"
+  ],
+  "compileOnSave": false,
+  "buildOnSave": false,
+  "atom": {
+    "rewriteTsconfig": false
+  }
+}
