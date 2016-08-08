@@ -19,7 +19,7 @@ describe('Write Registers Test', function() {
                 
                 modbusSerialPort.writeSingleRegister(1, 0, 3).then(function(outputBuffer){
                     console.log("received  writeSingleRegister in promise ", outputBuffer);
-                    expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x06, 0x00, 0x00, 0x00, 0x03,  0xc9, 0xcb]));
+                    expect(outputBuffer).to.deep.equal(new Buffer([0x01, 0x06, 0x00, 0x00, 0x00, 0x03,  0xc9, 0xcb]));
                     done();
                 }, function(err){
                     expect(true).to.equal(false);
@@ -30,7 +30,7 @@ describe('Write Registers Test', function() {
                 setTimeout(function(){
                     if (modbusSerialPort.serialPort != null) {
                         console.log("**Got serial port object**");
-                        modbusSerialPort.serialPort.writeToComputer(Buffer.from([0x01, 0x06, 0x00, 0x00, 0x00, 0x03,  0xc9, 0xcb]));
+                        modbusSerialPort.serialPort.writeToComputer(new Buffer([0x01, 0x06, 0x00, 0x00, 0x00, 0x03,  0xc9, 0xcb]));
                     }
                 }, 1000);
                 
@@ -50,7 +50,7 @@ describe('Write Registers Test', function() {
                 var buffer = Buffer.alloc(4, 2);
 
                 modbusSerialPort.writeMultipleRegisters(1, 0, buffer).then(function(outputBuffer){
-                    expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x10, 0x00, 0x00, 0x00,  0x02, 0x41, 0xc8]));
+                    expect(outputBuffer).to.deep.equal(new Buffer([0x01, 0x10, 0x00, 0x00, 0x00,  0x02, 0x41, 0xc8]));
                     done();
                 }, function(err){
                     expect(true).to.equal(false);
@@ -60,7 +60,7 @@ describe('Write Registers Test', function() {
                 
                 setTimeout(function(){
                     if (modbusSerialPort.serialPort != null) {
-                        modbusSerialPort.serialPort.writeToComputer(Buffer.from([0x01, 0x10, 0x00, 0x00, 0x00,  0x02, 0x41, 0xc8]));
+                        modbusSerialPort.serialPort.writeToComputer(new Buffer([0x01, 0x10, 0x00, 0x00, 0x00,  0x02, 0x41, 0xc8]));
                     }
                 }, 1000);
                 

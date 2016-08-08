@@ -19,7 +19,7 @@ describe('Write Coil(s) Tests', function() {
    
                 //var bitBuffer = Buffer.alloc(4, 1); 
                 modbusSerialPort.writeSingleCoil(1, 0, false).then(function(outputBuffer){
-                     expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x05, 0x00, 0x00, 0x00,  0x00, 0xcd, 0xca]));
+                     expect(outputBuffer).to.deep.equal(new Buffer([0x01, 0x05, 0x00, 0x00, 0x00,  0x00, 0xcd, 0xca]));
                      done();
                 }, function(err){
                     expect(true).to.be(false);
@@ -29,7 +29,7 @@ describe('Write Coil(s) Tests', function() {
                 setTimeout(function(){
                     if (modbusSerialPort.serialPort != null) {
                         console.log("**Got serial port object**");
-                        modbusSerialPort.serialPort.writeToComputer(Buffer.from([0x01, 0x05, 0x00, 0x00, 0x00,  0x00, 0xcd, 0xca]));
+                        modbusSerialPort.serialPort.writeToComputer(new Buffer([0x01, 0x05, 0x00, 0x00, 0x00,  0x00, 0xcd, 0xca]));
                     }
                 }, 1000);
                 
@@ -48,7 +48,7 @@ describe('Write Coil(s) Tests', function() {
                 var buffer = Buffer.alloc(4, 1); 
 
                 modbusSerialPort.writeMultipleCoils(1, 0, buffer).then(function(outputBuffer){
-                    expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x0f, 0x00, 0x00, 0x00, 0x04, 0x54, 0x08]));
+                    expect(outputBuffer).to.deep.equal(new Buffer([0x01, 0x0f, 0x00, 0x00, 0x00, 0x04, 0x54, 0x08]));
                     done();
                 }, function(err){
                     expect(true).to.equal(false);
@@ -58,7 +58,7 @@ describe('Write Coil(s) Tests', function() {
                 
                 setTimeout(function(){
                     if (modbusSerialPort.serialPort != null) {
-                        modbusSerialPort.serialPort.writeToComputer(Buffer.from([0x01, 0x0f, 0x00, 0x00, 0x00, 0x04, 0x54, 0x08]));
+                        modbusSerialPort.serialPort.writeToComputer(new Buffer([0x01, 0x0f, 0x00, 0x00, 0x00, 0x04, 0x54, 0x08]));
                     }
                 }, 1000);
                 

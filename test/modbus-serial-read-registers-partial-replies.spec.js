@@ -18,7 +18,7 @@ describe('Partial Data Receive ', function() {
                 
                 modbusSerialPort.readHoldingRegisters(1, 0, 10).then(function(outputBuffer){
                     console.log("received  readHoldingRegisters in promise ", outputBuffer);
-                    expect(outputBuffer).to.deep.equal(Buffer.from([0x01, 0x03, 0x14, 0x02, 0x02, 0x02, 0x02, 0x00, 0x02, 0x00, 0x03, 0x00, 
+                    expect(outputBuffer).to.deep.equal(new Buffer([0x01, 0x03, 0x14, 0x02, 0x02, 0x02, 0x02, 0x00, 0x02, 0x00, 0x03, 0x00, 
                     0x04, 0x00, 0x05, 0x00, 0x06, 0x00, 0x07, 0x00, 0x08, 0x00, 0x09, 0x9c, 0x43]));
                     done();
                 }, function(err){
@@ -33,12 +33,12 @@ describe('Partial Data Receive ', function() {
 
 
                 setTimeout(function(){
-                    modbusSerialPort.serialPort.writeToComputer(Buffer.from(set1));
+                    modbusSerialPort.serialPort.writeToComputer(new Buffer(set1));
                     setTimeout(function(){
-                        modbusSerialPort.serialPort.writeToComputer(Buffer.from(set2));
+                        modbusSerialPort.serialPort.writeToComputer(new Buffer(set2));
 
                             setTimeout(function(){
-                                modbusSerialPort.serialPort.writeToComputer(Buffer.from(set3));                            
+                                modbusSerialPort.serialPort.writeToComputer(new Buffer(set3));                            
                             }, 200);
                             
                     }, 200);

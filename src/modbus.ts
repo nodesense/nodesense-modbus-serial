@@ -100,13 +100,13 @@ let CRC_TABLE = [
 ]
 
 
-let TABLE = new Int32Array(CRC_TABLE);
+//let TABLE = new Int32Array(CRC_TABLE);
 
 export function crc16_modbus(buf : Buffer, length : number) {
   let crc =  0xffff;
 
   for (let index = 0; index < length; index++) {
-    crc = ((TABLE[(crc ^ buf[index]) & 0xff] ^ (crc >> 8)) & 0xffff);
+    crc = ((CRC_TABLE[(crc ^ buf[index]) & 0xff] ^ (crc >> 8)) & 0xffff);
   }
 
   return crc;

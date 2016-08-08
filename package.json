@@ -25,6 +25,7 @@
   "dependencies": {
     "async": "^2.0.1",
     "bluebird": "^3.4.1",
+    "buffer-v6-polyfill": "^1.0.2",
     "performance-now": "^0.2.0",
     "serialport": "^4.0.1"
   },

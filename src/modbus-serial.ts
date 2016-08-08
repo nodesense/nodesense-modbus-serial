@@ -3,6 +3,7 @@ var now = require("performance-now")
 var async = require('async');
 var Promise = require("bluebird");
 
+require('buffer-v6-polyfill');
 
 if (process.env.NODE_ENV == 'test') {
   SerialPort = require('./virtual-serialport');
