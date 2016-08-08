@@ -4,7 +4,7 @@
   "description": "Modbus Serial Port Implementation in Node.js",
   "main": "index.js",
   "scripts": {
-    "test": "karma start"
+    "test": "NODE_ENV=test mocha"
   },
   "repository": {
     "type": "git",

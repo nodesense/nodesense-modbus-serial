@@ -39,16 +39,74 @@ export class ModbusSerialPort {
 
     seqId : number;
 
-    constructor(port: string) {
+    serialPortOptions: any;
+    masterOptions: any;
+
+    constructor(port: string, portOptions:any, masterOptions: any) {
         this.port = port;
         this.incomingBuffer = Buffer.alloc(512, 0);
 
-        this.MAX_TIME_OUT = 2000; //in milli seconds
-        this.MAX_RETRY = 3;
 
         this.seqId = 0;
  
         this.state = State.NotOpened;
+
+        
+        if (!portOptions) {
+            portOptions = {};
+        }
+
+
+        /* //other default actions
+        rtscts 	boolean 	false 	flow control setting
+        xon 	boolean 	false 	flow control setting
+        xoff 	boolean 	false 	flow control setting
+        xany 	boolean 	false 	flow control setting
+        */
+
+         let options:any = {
+            "autoOpen" : false,
+            "baudRate" : 9600,
+            "stopBits" : 1,
+            "parity" : "none"
+        }
+
+        for (var key in options) {
+            console.log("key is ", key, portOptions[key], options[key]);
+
+            if (!(key in portOptions)){
+                console.log("Coping ", key);
+                portOptions[key] = options[key];
+            }
+        }
+
+        //Just to make sure that we disable autoOpen
+        portOptions.autoOpen = false;
+
+        this.serialPortOptions = portOptions;
+
+
+
+        this.masterOptions = masterOptions || {};
+
+        let modbusMasterOptions = {
+            MAX_RETRY : 3,
+            MAX_TIME_OUT: 2000
+        }
+
+
+        for (var key in modbusMasterOptions) {
+            console.log("key is ", key);
+
+            if (!(key in this.masterOptions)){
+                this.masterOptions[key] = modbusMasterOptions[key];
+            }
+        }
+
+        this.MAX_TIME_OUT = this.masterOptions.MAX_TIME_OUT; //in milli seconds
+        this.MAX_RETRY = this.masterOptions.MAX_RETRY;
+
+        this.masterOptions = masterOptions;
 
         this.incomingLength = 0;
     }
@@ -56,22 +114,8 @@ export class ModbusSerialPort {
     connect():Promise<string> {
       
         console.log("opening port ", this.port);
-
-        var options = {
-            "baudRate" : 9600,
-            "stopBits" : 1,
-            "parity" : "none",
-            "autoOpen" : false
-        }
-
-        /*
-        rtscts 	boolean 	false 	flow control setting
-        xon 	boolean 	false 	flow control setting
-        xoff 	boolean 	false 	flow control setting
-        xany 	boolean 	false 	flow control setting
-        */
-
-        this.serialPort = new SerialPort(this.port, options);
+ 
+        this.serialPort = new SerialPort(this.port, this.serialPortOptions);
         
         this.serialPort.on("open", (err: any) => (this.onOpen()));
         this.serialPort.on("data", (data : Buffer) => (this.onReceive(data)));
