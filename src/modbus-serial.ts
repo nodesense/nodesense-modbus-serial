@@ -72,10 +72,9 @@ export class ModbusSerialPort {
         }
 
         for (var key in options) {
-            console.log("key is ", key, portOptions[key], options[key]);
-
+           
             if (!(key in portOptions)){
-                console.log("Coping ", key);
+               
                 portOptions[key] = options[key];
             }
         }
@@ -86,22 +85,24 @@ export class ModbusSerialPort {
         this.serialPortOptions = portOptions;
 
 
-
-        this.masterOptions = masterOptions || {};
-
-        let modbusMasterOptions = {
+        if (!masterOptions) {
+            masterOptions = {};
+        }
+       
+        let modbusMasterDefaultOptions:any = {
             MAX_RETRY : 3,
             MAX_TIME_OUT: 2000
         }
 
 
-        for (var key in modbusMasterOptions) {
-            console.log("key is ", key);
-
-            if (!(key in this.masterOptions)){
-                this.masterOptions[key] = modbusMasterOptions[key];
+        for (var key in modbusMasterDefaultOptions) {
+            
+            if (!(key in masterOptions)){
+                masterOptions[key] = modbusMasterDefaultOptions[key];
             }
         }
+
+        this.masterOptions =  masterOptions;
 
         this.MAX_TIME_OUT = this.masterOptions.MAX_TIME_OUT; //in milli seconds
         this.MAX_RETRY = this.masterOptions.MAX_RETRY;
@@ -113,8 +114,7 @@ export class ModbusSerialPort {
 
     connect():Promise<string> {
       
-        console.log("opening port ", this.port);
- 
+        
         this.serialPort = new SerialPort(this.port, this.serialPortOptions);
         
         this.serialPort.on("open", (err: any) => (this.onOpen()));
@@ -130,14 +130,15 @@ export class ModbusSerialPort {
  
         this.requestQueue = async.queue(function(task : Task, callback : Function) {
              task.callback = callback;
- 
-             console.log("Executing task ==> ", task.id);
-            __this.execute(task);
+             __this.execute(task);
         }, 1);
 
 
         //PATCH: async/queue
-        //mercyKill takes callback for each task cleanup 
+        //mercyKill takes callback for each task cleanup
+        //https://github.com/caolan/async/issues/1262
+        //Need to modify internal queue/kill method, rename this function to kill
+         
         this.requestQueue.mercyKill = function(callback : Function) {
             if (!callback) 
                 return this.kill();
@@ -153,8 +154,7 @@ export class ModbusSerialPort {
 
         return new Promise(function(resolve : Function, reject : Function){
             
-            __this.serialPort.on("open", function() {
-                console.log("on promise ");
+            __this.serialPort.on("open", function() { 
                 resolve();
             });
 
@@ -166,51 +166,43 @@ export class ModbusSerialPort {
         });
     }
 
-    onOpen() {
-        console.log("Port Opened");
+    onOpen() { 
         this.state = State.Opened;
     }
 
+    //FIXME: Do promise reject for all pending request
+    //FIXME: Try max connection retry feature
     onError(msg : any) {
         console.log("***ERROR***", msg);
+        this.state = State.Error;
     }
 
+    //FIXME: Do promise reject for all pending request
     onDisconnect(msg : any) {
         console.log("***onDisconnect***", msg);
         this.state = State.Closed;
     }
 
+    //FIXME: Reject all pending request promises
     onClose(){
          console.log("***Closed***");
          this.state = State.Closed;
     }
- 
-    
-
+  
     retryCurrentTask() {
         if (this.currentTask == null)
         return;
-
-        console.log("Task Time out ", this.currentTask.id);
-
-        console.log("Queue Length ", this.requestQueue.length());
-
-        console.log("Queue workersList Length ", this.requestQueue.workersList().length);
-
-        console.log("Queue running Length ", this.requestQueue.running().length);
-        
+ 
         var callback = this.currentTask.callback;
 
         this.currentTask.retry += 1;
         this.currentTask.callback = null;
 
-        console.log("retry for ", this.currentTask.retry);
-
+       
         if (this.currentTask.retry >= this.MAX_RETRY) {
-            console.log("max retry reached, failing promises");
-
+         
             if (this.currentTask.reject) {
-                this.currentTask.reject("MAX_RETR");
+                this.currentTask.reject("MAX_RETRY");
                 this.currentTask.reject = null;
                 this.currentTask.resolve = null;
             }
@@ -224,9 +216,8 @@ export class ModbusSerialPort {
         var task = this.currentTask;
         this.currentTask = null;
 
-        this.addToQueue(task, true);
-
-        console.log("Added to front of the queue");
+        //Adding failed task to front of the queue for re-execution
+        this.addToQueue(task, true); 
 
         callback();
     }
@@ -234,9 +225,7 @@ export class ModbusSerialPort {
     timerPoll() {
         if (this.currentTask) {
             if ((now() - this.writeTime) > this.MAX_TIME_OUT)
-            {
-                console.log("elasped time ", now() - this.writeTime);
-                console.log("TIME OUT");
+            { 
                 this.retryCurrentTask();
             }
         }
@@ -261,8 +250,7 @@ export class ModbusSerialPort {
         }
 
         this.requestQueue.mercyKill(function(task : Task){
-            console.log("Cleaning task ", task.id);
-
+            
             if (task && task.reject) {
                 task.reject("serial port closed");
                 task.reject = null;
@@ -278,29 +266,15 @@ export class ModbusSerialPort {
     }
 
     onReceive(data: Buffer) {
-        console.log("data received ", data, "Length ", data.length);
-        
-        console.log("this port ", this.port);
-
         if (this.currentTask == null) {
-            console.log("current task is null, nothing to do");
-            return;
+             return;
         }
-        
-
+       
         if (data.length > 0) {
             data.copy(this.incomingBuffer, this.incomingLength, 0, data.length);
         }
-        
-
-        this.incomingLength += data.length;
-
-
-        if (this.currentTask.expected == this.incomingLength) {
-            console.log("RECEIVED FULL", this.currentTask.expected);
-        } else {
-            console.log("RECEIVED PARTIAL", this.currentTask.expected, this.incomingLength);
-        }
+       
+        this.incomingLength += data.length; 
 
         if (this.currentTask != null && (this.currentTask.expected == this.incomingLength)) {
             
@@ -310,15 +284,14 @@ export class ModbusSerialPort {
 
             let calculatedCRC = crc16_modbus(this.incomingBuffer, this.incomingLength - 2);
 
+            //If CRC fails, request for retry. retry can be denied if max retry used
             if (crc !== calculatedCRC) {
-                console.log("INCORRECT CRC*", crc.toString(16), calculatedCRC.toString(16));
                  this.retryCurrentTask();
                  return;
             }
 
             if (this.currentTask.resolve) {
-                console.log("processing resolve");
-
+                
                 let buffer = Buffer.alloc(this.incomingLength, 0);
                 this.incomingBuffer.copy(buffer, 0, 0, this.incomingLength);
 
@@ -329,14 +302,11 @@ export class ModbusSerialPort {
             }
 
             if (this.currentTask.callback != null) {
-                console.log("processing callback");
                 var task = this.currentTask;
                 this.currentTask = null;
                 task.callback();
                 task = null;
             }
-        } else {
-            console.log("current task is null");
         }
     }
 
@@ -346,8 +316,7 @@ export class ModbusSerialPort {
     }
 
     write(buffer: any) {
-        console.log("Writing to port");
-
+        
         this.incomingLength = 0;
         this.writeTime = now();
         this.serialPort.write(buffer);
@@ -358,11 +327,10 @@ export class ModbusSerialPort {
          if (front) {
              this.requestQueue.unshift(task);
          } else {
-             console.log("Adding task ", task.id);
+             
               this.requestQueue.push(task);
          }
-        
-         console.log("pending requests ", this.requestQueue.length());
+         
     }
 
 
@@ -387,10 +355,8 @@ export class ModbusSerialPort {
             if (__this.seqId >= Number.MAX_SAFE_INTEGER) {
                 __this.seqId = 0;
             }
-
-            __this.addToQueue(task, false);
-            
-             console.log("Added to queue");
+            //add to end of the queue
+            __this.addToQueue(task, false); 
         });
 
     }
@@ -399,8 +365,7 @@ export class ModbusSerialPort {
         if (this.state != State.Opened) {
             return Promise.reject("Invalid state", {state: this.state} );
         }
-        
-        console.log("Reading ", slave, address, count);
+         
 
         var buffer = Buffer.alloc(8, 0);
         buffer[0] = slave;
@@ -420,9 +385,7 @@ export class ModbusSerialPort {
 
          //slave (1), function code (1), data bytes count (1), crc (2) + count * 2
         var expectedDataCount = 5 + count  * 2;
-        
-        console.log("=>", buffer.toString('hex'))
-        console.log(crc.toString(16)); 
+         
 
         return this.addToTaskQueue(buffer, expectedDataCount);
     }
@@ -432,8 +395,7 @@ export class ModbusSerialPort {
         if (this.state != State.Opened) {
             return Promise.reject("Invalid state", {state: this.state} );
         }
-        
-        console.log("Reading ", slave, address, count);
+         
 
         var buffer = Buffer.alloc(8, 0);
         buffer[0] = slave;
@@ -453,37 +415,29 @@ export class ModbusSerialPort {
 
          //slave (1), function code (1), data bytes count (1), crc (2) + Math.ceil(count  / 8)
         var expectedDataCount = 5 + Math.ceil(count  / 8);
-        
-        console.log("=>", buffer.toString('hex'))
-        console.log(crc.toString(16)); 
-
-
+         
         return this.addToTaskQueue(buffer, expectedDataCount);
     }
 
 
     readHoldingRegisters(slave: number, address: number, count: number):Promise<Buffer>  {
-        console.log("Reading ", slave, address, count);
-
+         
          return this.readRegistersInternal(slave, 3, address, count);
     }
 
     readInputRegisters(slave: number, address: number, count: number):Promise<Buffer>  {
-            console.log("Reading ", slave, address, count);
-
+             
             return this.readRegistersInternal(slave, 4, address, count);
     }
 
 
     readCoils(slave: number, address: number, count: number):Promise<Buffer>  {
-            console.log("Reading ", slave, address, count);
-
+            
             return this.readCoilsInternal(slave, 1, address, count);
     }
 
     readDiscreteInputs(slave: number, address: number, count: number):Promise<Buffer>  {
-            console.log("Reading ", slave, address, count);
-
+            
             return this.readCoilsInternal(slave, 2, address, count);
     }
  
@@ -506,28 +460,17 @@ export class ModbusSerialPort {
         //number of data bytes to follow
         buffer[6] = dataBuffer.length & 0x00ff;
 
-
-        console.log("buffer => ", buffer.toString("hex"));
-
-        console.log("dataBuffer => ", dataBuffer.toString("hex"));
-
+ 
         dataBuffer.copy(buffer, 7, 0);
-
-        console.log("{}buffer => ", buffer.toString("hex"));
-          
+   
         var crc = crc16_modbus(buffer, buffer.length - 2);
 
         buffer[buffer.length - 2] = crc & 0x00ff;
         buffer[buffer.length - 1] = (crc & 0xff00) >> 8;
         
-        console.log("=>", buffer.toString('hex'))
-        console.log(crc.toString(16)); 
-
-
          //slave (1), FC (1), Address (2), Registers Count (2) crc (2)
         var expectedDataCount = 8;
         
-
         return this.addToTaskQueue(buffer, expectedDataCount);
     }
 
@@ -535,8 +478,7 @@ export class ModbusSerialPort {
         if (this.state != State.Opened) {
             return Promise.reject("Invalid state", {state: this.state} );
         }
-        
-        
+         
         const dataLength = Math.ceil(bitsBuffer.length / 8.0);
         
         var dataBuffer = Buffer.alloc(dataLength, 0);
@@ -570,29 +512,17 @@ export class ModbusSerialPort {
 
         //number of data bytes to follow
         buffer[6] = dataBuffer.length & 0x00ff;
-
-
-        console.log("buffer => ", buffer.toString("hex"));
-
-        console.log("dataBuffer => ", dataBuffer.toString("hex"));
-
+ 
         dataBuffer.copy(buffer, 7, 0);
-
-        console.log("{}buffer => ", buffer.toString("hex"));
-          
+    
         var crc = crc16_modbus(buffer, buffer.length - 2);
 
         buffer[buffer.length - 2] = crc & 0x00ff;
         buffer[buffer.length - 1] = (crc & 0xff00) >> 8;
-        
-        console.log("=>", buffer.toString('hex'))
-        console.log(crc.toString(16)); 
-
-
+         
          //slave (1), FC (1), Address (2), Registers Count (2) crc (2)
         var expectedDataCount = 8;
-        
-
+         
         return this.addToTaskQueue(buffer, expectedDataCount);
     }
 
@@ -617,11 +547,7 @@ export class ModbusSerialPort {
 
         buffer[buffer.length - 2] = crc & 0x00ff;
         buffer[buffer.length - 1] = (crc & 0xff00) >> 8;
-        
-        console.log("=>", buffer.toString('hex'))
-        console.log(crc.toString(16)); 
-
-
+       
          //slave (1), FC (1), Address (2), value writen (2) crc (2)
         var expectedDataCount = 8;
         
@@ -632,8 +558,7 @@ export class ModbusSerialPort {
     writeSingleCoil(slave: number, address: number, value: boolean):Promise<Buffer>  {
         if (this.state != State.Opened) {
             return Promise.reject("Invalid state", {state: this.state} );
-        }
-        
+        } 
 
         var buffer = Buffer.alloc(8, 0);
         buffer[0] = slave;
@@ -656,13 +581,8 @@ export class ModbusSerialPort {
         buffer[buffer.length - 2] = crc & 0x00ff;
         buffer[buffer.length - 1] = (crc & 0xff00) >> 8;
         
-        console.log("=>", buffer.toString('hex'))
-        console.log(crc.toString(16)); 
-
         var __this = this;
-
-
-         //slave (1), FC (1), Address (2), value writen (2) crc (2)
+        //slave (1), FC (1), Address (2), value writen (2) crc (2)
         var expectedDataCount = 8;
         
         return this.addToTaskQueue(buffer, expectedDataCount);
