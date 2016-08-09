@@ -19,6 +19,19 @@ PORT = 1
 #PORT = '/dev/ttyp5'
 PORT = "/dev/ttys002"
 
+
+
+
+parser = argparse.ArgumentParser(description='Modbus Slave')
+parser.add_argument('ports',   type=str,  
+                   help='port name', nargs=1)
+args = parser.parse_args()
+
+print "First argument: %s" % args.ports
+
+PORT = args.ports[0]
+
+
 def main():
     """main"""
     logger = modbus_tk.utils.create_logger("console")
