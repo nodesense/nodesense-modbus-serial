@@ -73,9 +73,7 @@ def main():
         for i in range(0, 100):
             values.append(i % 2);
         slave_1.set_values('4', 0, values)
-
- 
-        
+         
         while True:
             cmd = sys.stdin.readline()
             args = cmd.split(' ')
@@ -122,6 +120,7 @@ def main():
 
             else:
                 sys.stdout.write("unknown command %s\r\n" % (args[0]))
+    
     finally:
         server.stop()
 

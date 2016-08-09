@@ -14,6 +14,14 @@ Features
 * Validate CRC after receiving data, before responding data. If CRC fails, rescheduled with retry loop
 * Allow multi-drop by default
 
+Updates
+=======
+
+* Using buffer-v6-polyfill now, since Intel Edison runs with Node.js 4.4.3, upgrading Edison to 6.0 is not easy option for all.
+* Test Cases passes for Mac and Intel Edison
+* Serial communication works with Mac and Intel Edison with socat terminals 
+
+
 TODOs
 =====
 
@@ -24,8 +32,6 @@ TODOs
 * Test on Windows, Linux, Raspberry PI and Intel Edison
 * Adjust timeout based on response length, baudrate with an formula. The higher baudrate, faster response. When the higher data length is more, need more time to read data 
 * Set Max Queue size
-* Set Max Configurable Retry [by default 3 times]
-* Set Max Configurable Timeout [by default 2000 milli-seconds]
 * Setup Sandbox Module for VirtualSerialPort correctly, instead of using virtual port inside the modbus-serial.ts
 
 Dependencies
