@@ -2,6 +2,8 @@
 var sinon = require('sinon');
 var chai = require('chai');
 
+require('buffer-v6-polyfill');
+
 require("./mocks/virtualport");
 
 var modbus_Serial = require("../dist/modbus-serial");

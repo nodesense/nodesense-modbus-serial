@@ -1,6 +1,20 @@
 import {ModbusSerialPort} from "./modbus-serial";
 
-let modbusClient = new ModbusSerialPort("/dev/ttys002");  
+
+console.log(process.argv.length);
+
+if (process.argv.length < 3)
+{
+    console.log("needed port name ");
+    process.exit(0);
+}
+
+console.log(process.argv);
+///dev/ttys002
+var PORT = process.argv[2];
+ 
+
+let modbusClient = new ModbusSerialPort(PORT);  
 
 
 modbusClient.connect().then(function(){
